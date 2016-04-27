@@ -4,8 +4,18 @@
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 <script src="https://maps.googleapis.com/maps/api/js?sensor=false"> </script>
 <script>
-var x,y,myLatLng;
+var x,y,myLatLng,tot;
 $(function(){
+	
+	
+	$('a').click(function(e){
+		
+		var ip=$(this).attr("href");
+		//alert(ip);
+		$.post('update.php',{'request':'post','ip':ip},function(data){
+				console.log(+data);
+		});
+	});//end a click
 	
 	$.get('http://ip-api.com/json',
 	{ip:'14.139.249.201'},
@@ -25,6 +35,7 @@ function initMap() {
     center: myLatLng
   });
 
+	
   var marker = new google.maps.Marker({
     position: myLatLng,
     map: map,
@@ -37,21 +48,29 @@ function initMap() {
 
 
 
-<?php
 
-
-?>
 <div class="container">
-<html>
-	<br>
-<br>
-<br>
+	<html>
+
+    <br>
 
 	<div class="jumbotron">
     <img src="images/logo.png" style="width:12%;height:12%;" />
       <h1>MNNIT SaaS Network welcomes you</h1>
 	</div>
+    
+    
+<table class="table">
+    <thead>
+      <tr>
+        <th>Route Name</th>
+        <th>Connections Alive</th>
+        <th>Authenticated</th>
+      </tr>
+    </thead>
+    <tbody>
 <?php
+
 $addr="127.0.0.1";
 
 $client= stream_socket_client("tcp://$addr:1069",$errno,$errormessage);
@@ -65,11 +84,12 @@ fwrite($client,$query);
 fflush($client);
 
 $c=stream_get_contents($client,400,0);
-echo "<br />".$c;
+//echo "<br />".$c;
 $lines=explode("\n",$c);
-echo "lines";
+
 $accepted=array();
 $r="/(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/";
+
 foreach($lines as $line){
   //try to get the ip
   $t=array();
@@ -77,21 +97,54 @@ foreach($lines as $line){
   $ip=$t[0];
   $accepted[]=$ip;
 }
+$meaningfulIP = 0;
+
 
 foreach($accepted as $ip)
 {
+	
 	if($ip!="")
-	echo "<a href=ssh://".$ip." value=".$ip.">heya</a>";	
+	{
+		$set=0;
+		$count =0 ;
+		$xml=simplexml_load_file('data.xml');
+		
+		$addr="ssh://".$ip;
+		foreach($xml->entry as $entry)
+		{
+			if($entry->ip==$addr)
+			{$set=1;$count=$entry->count;}
+		}
+		
+		//echo "set".$set;
+		$xml=simplexml_load_file('data.xml');
+		if($set==0)
+			{
+				echo "adding";
+				$entry = $xml->addChild('entry');
+				$entry->addChild('ip',$addr);	
+				$entry->addChild('count','0');
+			}
+		$xml->asXML('data.xml');
+		echo "<tr>";		
+		echo "<td><a href=ssh://".$ip." value=".$ip.">".$ip."</a></td>";
+		echo "<td>".$count."</td>";
+		echo "<td>Yes</td>";
+		echo "</tr>";
+	}	
 }
-
+?><script>tot = <?php echo $meaningfulIP;?></script><?php
 //socket_close($client);
 //echo 'x';
 
 
 
 
-echo 'x';
+
 ?>
+</tbody>
+</table>
+<p class="lead"> A Map to plot the available Servers</p>
 <div id="map" style="height: 300px; width:300px;"></div>
 </html>
 </div>
