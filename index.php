@@ -1,12 +1,53 @@
 <link rel="stylesheet" href="css/bootstrap.css" type="text/css">
 <script src="js/jquery-1.11.1.js" type="text/javascript"></script>
-<script src="js/bootstrap.min.js" type="text/javascript"></script>
+<script src="js/bootstrap.js" type="text/javascript"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?sensor=false"> </script>
+<script>
+var x,y,myLatLng;
+$(function(){
+	
+	$.get('http://ip-api.com/json',
+	{ip:'14.139.249.201'},
+	function(data){
+		myLatLng = {lat: data.lat, lng: data.lon};
+		initMap();
+	});
+	
+
+});
+
+function initMap() {
+ // var myLatLng = {lat: x, lng: y};
+
+  var map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 8,
+    center: myLatLng
+  });
+
+  var marker = new google.maps.Marker({
+    position: myLatLng,
+    map: map,
+    title: 'MNNIT'
+  });
+  
+}
+
+</script>
+
+
+
+
 
 <?php
-
+//echo $_SERVER['REMOTE_ADDR'];
 
 ?>
+
+
+
 <div class="container">
+
 <html>
 	<br>
 <br>
@@ -35,4 +76,5 @@
 	</div>
     </div>
 </html>
+<div id="map" style="height: 300px; width:300px;"></div>
 </div>
